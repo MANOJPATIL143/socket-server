@@ -17,10 +17,11 @@ const io = new Server(server, {
   cors: {
     origin: [
       'https://www.swadmart.shop',
+      'https://swadmart.shop'
       'http://localhost:3000',
       'http://localhost:4028'
     ],
-    credentials: true,
+    credentials: false,
   },
 
   // Better for Render free tier
@@ -56,17 +57,19 @@ function getUserFromCookie(header) {
 
 io.use((socket, next) => {
   try {
-    const user = getUserFromCookie(
-      socket.request.headers.cookie
-    );
+    const token = socket.handshake?.auth?.token;
+    if (!token) return next(new Error('Unauthorized'));
 
-    socket.data.userId = user.userId;
-    socket.data.role = user.role;
+    const payload = jwt.verify(token, process.env.AUTH_JWT_SECRET, {
+      issuer: 'swadmart-auth',
+      audience: 'swadmart-web',
+    });
 
+    socket.data.userId = payload.sub;
+    socket.data.uid = payload.uid;
+    socket.data.role = payload.role || 'user';
     next();
   } catch (err) {
-    console.error('Socket auth failed');
-
     next(new Error('Unauthorized'));
   }
 });
