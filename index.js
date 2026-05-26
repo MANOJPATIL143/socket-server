@@ -17,7 +17,7 @@ const io = new Server(server, {
   cors: {
     origin: [
       'https://www.swadmart.shop',
-      'https://swadmart.shop'
+      'https://swadmart.shop',
       'http://localhost:3000',
       'http://localhost:4028'
     ],
